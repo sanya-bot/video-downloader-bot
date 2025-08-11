@@ -1,2 +1,3 @@
 # video-downloader-bot
-Telegram bot for downloading videos from YouTube, TikTok, Instagram without watermark
+Ваш личный курьер по доставке роликов из YouTube, TikTok, Instagram.
+Your private video delivery guy — straight from YouTube, TikTok, and Instagram.
