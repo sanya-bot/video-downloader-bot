@@ -1,12 +1,15 @@
-import telebot
-import requests
 import os
+import threading
+import time
+from flask import Flask
+import telebot
+import yt_dlp
 
-# Токен бота
+# --- Твой токен бота ---
 BOT_TOKEN = "8289812320:AAHSGU3hsumhw525yH9NNBawhVxvRjxd0Jo"
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Старт
+# --- Команда /start ---
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(
@@ -14,33 +17,54 @@ def start(message):
         "Привет! 👋 Отправь мне ссылку на видео с YouTube, TikTok или Instagram, и я пришлю его без водяных знаков."
     )
 
-# Обработка ссылок
+# --- Обработка ссылок ---
 @bot.message_handler(func=lambda message: True)
 def download_video(message):
     url = message.text.strip()
 
-    if "tiktok.com" in url or "youtu" in url or "instagram.com" in url:
-        bot.send_message(message.chat.id, "⏳ Загружаю видео...")
-
-        try:
-            # Пример: используем бесплатный API для скачивания (замени на свой)
-            api_url = f"https://api.ryzendesu.com/download?url={url}"
-            response = requests.get(api_url)
-
-            if response.status_code == 200:
-                with open("video.mp4", "wb") as f:
-                    f.write(response.content)
-
-                with open("video.mp4", "rb") as f:
-                    bot.send_video(message.chat.id, f)
-
-                os.remove("video.mp4")
-            else:
-                bot.send_message(message.chat.id, "❌ Не удалось скачать видео. Попробуй другую ссылку.")
-        except Exception as e:
-            bot.send_message(message.chat.id, f"⚠ Ошибка: {e}")
-    else:
+    if not any(site in url for site in ["tiktok.com", "youtu", "instagram.com"]):
         bot.send_message(message.chat.id, "Отправь корректную ссылку на видео.")
+        return
 
-print("Бот запущен...")
-bot.polling(none_stop=True)
+    bot.send_message(message.chat.id, "⏳ Скачиваю...")
+
+    try:
+        ydl_opts = {
+            'format': 'mp4',
+            'outtmpl': 'video.%(ext)s',
+            'noplaylist': True
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+
+        with open("video.mp4", "rb") as f:
+            bot.send_video(message.chat.id, f)
+
+        os.remove("video.mp4")
+    except Exception as e:
+        bot.send_message(message.chat.id, f"⚠ Ошибка: {e}")
+
+# --- Мини HTTP-сервер для Render ---
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run_flask():
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
+
+# --- Запуск бота с автоперезапуском ---
+def run_bot():
+    print("Бот запущен...")
+    while True:
+        try:
+            bot.polling(non_stop=True, interval=1, timeout=20)
+        except Exception as e:
+            print(f"Ошибка polling: {e}")
+            time.sleep(5)
+
+if __name__ == "__main__":
+    threading.Thread(target=run_flask).start()
+    run_bot()
