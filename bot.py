@@ -1,14 +1,41 @@
 import os
+import json
 from flask import Flask, request
 import telebot
 import yt_dlp
 
 # --- Настройки ---
-BOT_TOKEN = "8289812320:AAHSGU3hsumhw525yH9NNBawhVxvRjxd0Jo"
+BOT_TOKEN = "твой_токен"
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# URL твоего приложения на Render (пример: https://sanya-bot.onrender.com)
+# URL твоего приложения на Render
 WEBHOOK_URL = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}/{BOT_TOKEN}"
+
+# --- Конвертация cookies.json -> cookies.txt ---
+def convert_cookies_json_to_txt(json_path, txt_path):
+    if not os.path.exists(json_path):
+        print("⚠ Файл cookies.json не найден!")
+        return
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        cookies = json.load(f)
+
+    with open(txt_path, "w", encoding="utf-8") as f:
+        f.write("# Netscape HTTP Cookie File\n")
+        for cookie in cookies:
+            domain = cookie.get("domain", "")
+            flag = "TRUE" if domain.startswith(".") else "FALSE"
+            path = cookie.get("path", "/")
+            secure = "TRUE" if cookie.get("secure") else "FALSE"
+            expiration = str(int(cookie.get("expirationDate", 0)))
+            name = cookie.get("name", "")
+            value = cookie.get("value", "")
+            f.write("\t".join([domain, flag, path, secure, expiration, name, value]) + "\n")
+
+    print("✅ cookies.json сконвертирован в cookies.txt")
+
+# Конвертируем при старте
+convert_cookies_json_to_txt("cookies.json", "cookies.txt")
 
 # --- Flask ---
 app = Flask(__name__)
@@ -65,3 +92,4 @@ if __name__ == "__main__":
     bot.remove_webhook()
     bot.set_webhook(url=WEBHOOK_URL)
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
