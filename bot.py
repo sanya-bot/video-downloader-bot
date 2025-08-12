@@ -5,7 +5,7 @@ import telebot
 import yt_dlp
 
 # --- Настройки ---
-BOT_TOKEN = "твой_токен"
+BOT_TOKEN = "8289812320:AAHSGU3hsumhw525yH9NNBawhVxvRjxd0Jo"
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # URL твоего приложения на Render
