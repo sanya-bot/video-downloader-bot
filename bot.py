@@ -33,7 +33,7 @@ def download_video(message):
             'format': 'mp4',
             'outtmpl': 'video.%(ext)s',
             'noplaylist': True,
-            'cookies': 'cookies.txt',  # <-- Путь к твоему файлу cookies
+            'cookies': 'instagram_cookies.txt',  # файл cookies, загружаем в проект
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
@@ -69,4 +69,3 @@ def run_bot():
 if __name__ == "__main__":
     threading.Thread(target=run_flask).start()
     run_bot()
-
