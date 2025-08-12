@@ -1,13 +1,28 @@
 import os
-import threading
-import time
-from flask import Flask
+from flask import Flask, request
 import telebot
 import yt_dlp
 
-# --- Твой токен бота ---
+# --- Настройки ---
 BOT_TOKEN = "8289812320:AAHSGU3hsumhw525yH9NNBawhVxvRjxd0Jo"
 bot = telebot.TeleBot(BOT_TOKEN)
+
+# URL твоего приложения на Render (пример: https://sanya-bot.onrender.com)
+WEBHOOK_URL = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}/{BOT_TOKEN}"
+
+# --- Flask ---
+app = Flask(__name__)
+
+@app.route(f"/{BOT_TOKEN}", methods=['POST'])
+def webhook():
+    json_str = request.get_data().decode('UTF-8')
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return '', 200
+
+@app.route("/", methods=['GET'])
+def index():
+    return "Бот запущен через webhook!", 200
 
 # --- Команда /start ---
 @bot.message_handler(commands=['start'])
@@ -33,7 +48,7 @@ def download_video(message):
             'format': 'mp4',
             'outtmpl': 'video.%(ext)s',
             'noplaylist': True,
-            'cookies': 'instagram_cookies.txt',  # <-- Путь к актуальному файлу cookies
+            'cookies': 'cookies.txt'
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
@@ -45,27 +60,8 @@ def download_video(message):
     except Exception as e:
         bot.send_message(message.chat.id, f"⚠ Ошибка: {e}")
 
-# --- Мини HTTP-сервер для Render ---
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return "Bot is running!"
-
-def run_flask():
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
-
-# --- Запуск бота с автоперезапуском ---
-def run_bot():
-    print("Бот запущен...")
-    while True:
-        try:
-            bot.polling(non_stop=True, interval=1, timeout=20)
-        except Exception as e:
-            print(f"Ошибка polling: {e}")
-            time.sleep(5)
-
+# --- Запуск ---
 if __name__ == "__main__":
-    threading.Thread(target=run_flask).start()
-    run_bot()
+    bot.remove_webhook()
+    bot.set_webhook(url=WEBHOOK_URL)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
