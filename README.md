@@ -1,3 +1,2 @@
-# video-downloader-bot
-Ваш личный курьер по доставке роликов из YouTube, TikTok, Instagram.
-Your private video delivery guy — straight from YouTube, TikTok, and Instagram.
+Ваш личный курьер по доставке роликов из TikTok, без смс и водяных знаков 
+Your personal courier for TikTok videos, no SMS, no watermarks.
