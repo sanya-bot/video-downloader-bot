@@ -5,7 +5,7 @@ import yt_dlp
 import os
 
 # Токен бота (прописан прямо в коде)
-TOKEN = "8289812320:AAGs7Fq3LHHPiJ_CaQh533RYg70_gVAurwY"
+TOKEN = "8289812320:AAFbQpHnX4sqIFiIxe7E4EpTQJf65zsCcag"
 bot = telebot.TeleBot(TOKEN)
 
 # Словарь для хранения количества скачек на пользователя
