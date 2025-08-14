@@ -1,10 +1,11 @@
-import os
 import telebot
 from telebot import types
 from datetime import datetime, timedelta
 import yt_dlp
+import os
 
-TOKEN = os.getenv("BOT_TOKEN")  # Токен бота из переменных окружения
+# Токен бота (прописан прямо в коде)
+TOKEN = "8289812320:AAGs7Fq3LHHPiJ_CaQh533RYg70_gVAurwY"
 bot = telebot.TeleBot(TOKEN)
 
 # Словарь для хранения количества скачек на пользователя
